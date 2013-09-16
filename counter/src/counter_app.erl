@@ -13,7 +13,7 @@ start(_StartType, _StartArgs) ->
 	event_store:init(),
 
     case counter_sup:start_link() of
-        {ok, Pid} ->
+        {ok, _Pid} ->
             counter_command_handler:add_handler(),
             counter_event_handler:add_handler();
         Other ->

@@ -7,11 +7,11 @@
 
 create_counter(Name) ->
 	error_logger:info_msg("counter_client:create_counter(~p)~n", [Name]),
-	gen_event:notify(?SERVER, {create_counter, Name}).
-
+	bus:send_command({create_counter, Name}).
+	
 bump_counter(Name) ->
 	error_logger:info_msg("counter_client:bump_counter(~p)~n", [Name]),
-	gen_event:notify(?SERVER, {bump_counter, Name}).
+	bus:send_command({bump_counter, Name}).
 
 query_for_counter(_Name) -> 
 	ok.
