@@ -16,11 +16,12 @@ apply_event([Event|Rest], Pid) ->
 
 loop(State) ->
 	error_logger:info_msg("counter_aggregate state {~p}}~n", [State]),
-
 	receive 
 		{counter_created, Name, DateCreated} ->
+			gen_event:notify(?SERVER, {counter_created, Name, DateCreated}).
 			loop(State#state{name=Name, date_created=DateCreated});
 		{counter_bumped, Name, CounterValue,  DateBumped} ->
+			gen_event:notify(?SERVER, {counter_bumped, Name, CounterValue, DateBumped}).
 			loop(State#state{name=Name, counter_value=CounterValue, 
 				date_bumped=DateBumped});
 		_ ->

@@ -25,7 +25,6 @@ start_link() ->
 init([]) ->
 	EventManager = ?CHILD(bus, worker),
 	Repository = ?CHILD(counter_repository, worker),
-
 	Children = [EventManager, Repository],
 	RestartStrategy = {one_for_one, 10, 60},
     {ok, {RestartStrategy, Children}}.

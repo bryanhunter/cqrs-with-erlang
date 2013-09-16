@@ -1,4 +1,4 @@
--module(counter_command_handler).
+-module(counter_event_handler).
 
 -behavior(gen_event).
 
@@ -16,13 +16,13 @@ delete_handler() ->
 init([]) ->
 	{ok, []}.
 
-handle_event({create_counter, Name}, State) ->
-	Counter = counter_repository:get(Name),
-	error_logger:info_msg("Handle {create_counter {~p, ~p}}~n", [Name, Counter]),
+handle_event({counter_created, Name, DateCreated}, State) ->
+	error_logger:info_msg("Handle {counter_created {~p, ~p}}~n", 
+		[Name, DateCreated]),
 	{ok, State};
-handle_event({bump_counter, Name}, State) ->
-	error_logger:info_msg("Handle {bump_counter {~p}}~n", [Name]),
-	%% {ok, Pid} = counter_repository:get_counter_aggregate(Name),
+handle_event({counter_bumped, Name, CounterValue, DateBumped}, State) ->
+	error_logger:info_msg("Handle {counter_bumped {~p, ~p, ~p}}~n", 
+		[Name, CounterValue, DateBumped]),
 	{ok, State};
 handle_event(_, State) ->
 	{ok, State}.

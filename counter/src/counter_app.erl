@@ -15,7 +15,7 @@ start(_StartType, _StartArgs) ->
     case counter_sup:start_link() of
         {ok, Pid} ->
             counter_command_handler:add_handler(),
-            {ok, Pid};
+            counter_event_handler:add_handler();
         Other ->
             {error, Other}
     end.
