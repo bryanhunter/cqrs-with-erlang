@@ -23,8 +23,10 @@ start_link() ->
 %% ===================================================================
 
 init([]) ->
+	EventManager = ?CHILD(bus, worker),
+	Repository = ?CHILD(counter_repository, worker),
+
+	Children = [EventManager, Repository],
 	RestartStrategy = {one_for_one, 10, 60},
-	BusSpec = ?CHILD(bus, worker),
-	
-    {ok, {RestartStrategy, [BusSpec]}}.
+    {ok, {RestartStrategy, Children}}.
 

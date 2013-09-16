@@ -10,7 +10,15 @@
 %% ===================================================================
 
 start(_StartType, _StartArgs) ->
-    counter_sup:start_link().
+	event_store:init(),
+
+    case counter_sup:start_link() of
+        {ok, Pid} ->
+            counter_command_handler:add_handler(),
+            {ok, Pid};
+        Other ->
+            {error, Other}
+    end.
 
 stop(_State) ->
     ok.
