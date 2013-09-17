@@ -5,7 +5,7 @@
 %% API
 -export([start_link/0]).
 
-%% Supervisor callbacks
+%% supervisor callbacks
 -export([init/1]).
 
 %% Helper macro for declaring children of supervisor
@@ -23,9 +23,13 @@ start_link() ->
 %% ===================================================================
 
 init([]) ->
-	EventManager = ?CHILD(bus, worker),
+	Bus = ?CHILD(bus, worker),
 	Repository = ?CHILD(counter_repository, worker),
-	Children = [EventManager, Repository],
+	AggregateSup = {counter_aggregate_sup, 
+		{counter_aggregate_sup, start_link, []}, 
+		permanent, 2000, supervisor, [counter_aggregate]},
+
+	Children = [Bus, Repository, AggregateSup],
 	RestartStrategy = {one_for_one, 10, 60},
     {ok, {RestartStrategy, Children}}.
 

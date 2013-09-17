@@ -16,13 +16,13 @@ delete_handler() ->
 init([]) ->
 	{ok, []}.
 
-handle_event({counter_created, Name, DateCreated}, State) ->
+handle_event({counter_created, Id, DateCreated}, State) ->
 	error_logger:info_msg("Handle {counter_created {~p, ~p}}~n", 
-		[Name, DateCreated]),
+		[Id, DateCreated]),
 	{ok, State};
-handle_event({counter_bumped, Name, CounterValue, DateBumped}, State) ->
+handle_event({counter_bumped, Id, CounterValue, DateBumped}, State) ->
 	error_logger:info_msg("Handle {counter_bumped {~p, ~p, ~p}}~n", 
-		[Name, CounterValue, DateBumped]),
+		[Id, CounterValue, DateBumped]),
 	{ok, State};
 handle_event(_, State) ->
 	{ok, State}.

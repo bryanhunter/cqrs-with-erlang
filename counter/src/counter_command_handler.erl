@@ -16,13 +16,14 @@ delete_handler() ->
 init([]) ->
 	{ok, []}.
 
-handle_event({create_counter, Name}, State) ->
-	Counter = counter_repository:get(Name),
-	error_logger:info_msg("Handle {create_counter {~p, ~p}}~n", [Name, Counter]),
+handle_event({create_counter, Id}, State) ->
+	error_logger:info_msg("Handle {create_counter {~p}}~n", [Id]),
+	{ok, Pid} = counter_aggregate:create_counter(Id),
+	counter_repository:save(Pid),
 	{ok, State};
-handle_event({bump_counter, Name}, State) ->
-	error_logger:info_msg("Handle {bump_counter {~p}}~n", [Name]),
-	%% {ok, Pid} = counter_repository:get_counter_aggregate(Name),
+handle_event({bump_counter, Id}, State) ->
+	error_logger:info_msg("Handle {bump_counter {~p}}~n", [Id]),
+	%% {ok, Pid} = counter_repository:get_counter_aggregate(Id),
 	{ok, State};
 handle_event(_, State) ->
 	{ok, State}.
@@ -38,3 +39,4 @@ terminate(_Reason, _State) ->
 
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
+
