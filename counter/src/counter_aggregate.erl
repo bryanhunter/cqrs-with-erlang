@@ -13,14 +13,14 @@
 -define(SERVER, ?MODULE).
 
 %% API
-start_link([Id]) ->
-	gen_server:start_link({via, gproc, {n,g,{?MODULE,Id}}}, ?MODULE, []).
+start_link(Id) ->
+	gen_server:start_link({via, gproc, {n,l,{?MODULE,Id}}}, ?MODULE, Id, []).
 
 create_counter(Id) ->
     counter_aggregate_sup:start_child(Id).
 
 %% gen_server callbacks
-init([Id]) ->
+init(Id) ->
 	{ok, #state{id=Id}}.
 
 handle_call({counter_created, Id, DateCreated},  _From, State) -> 
