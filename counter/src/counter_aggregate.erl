@@ -1,85 +1,88 @@
 -module(counter_aggregate).
 
--behaviour(gen_server).
+-export([new/0,create_counter/2, bump_counter/1]).
+-export([get_unsaved_changes/1, mark_changes_saved/1, load_from_history/2]).
 
--export([start_link/1, create_counter/1]).
-
--export([init/1, handle_call/3, handle_cast/2, handle_info/2,
-         terminate/2, code_change/3]).
-
--record(state, {id, counter_value=0, date_created, date_bumped, 
-	changes=[]}).
-
--define(SERVER, ?MODULE).
+-record(state, {id, counter_value=0, date_created, date_bumped, changes=[]}).
+-define(PROCESS_TIME_OUT, 600000).
 
 %% API
-start_link(Id) ->
-	gen_server:start_link({via, gproc, {n,l,{?MODULE,Id}}}, ?MODULE, Id, []).
+new() ->
+	State = #state{},
+	spawn(fun() -> loop(State) end).
 
-create_counter(Id) ->
-    counter_aggregate_sup:start_child(Id).
+create_counter(Pid, Id) -> 
+	Pid ! {attempt_command, {create_counter, Id}}.
 
-%% gen_server callbacks
-init(Id) ->
-	{ok, #state{id=Id}}.
+bump_counter(Pid) ->
+	Pid ! {attempt_command, bump_counter}.
 
-handle_call({counter_created, Id, DateCreated},  _From, State) -> 
-	error_logger:info_msg("handle_call state {~p}}~n", [State]),
-	bus:publish_event({counter_created, Id, DateCreated}),
-	{reply, ok, State#state{id=Id, date_created=DateCreated}};
-handle_call({counter_bumped, Id, CounterValue,  DateBumped},  _From, State) -> 
-	error_logger:info_msg("handle_call state {~p}}~n", [State]),
-	bus:publish_event({counter_bumped, Id, CounterValue, DateBumped}),
-	{reply, ok, State#state{id=Id, counter_value=CounterValue, 
-				date_bumped=DateBumped}}.
+get_unsaved_changes(Pid) -> 
+	Pid ! {get_unsaved_changes, self()},
+	receive
+		{unsaved_changes, Changes} -> Changes
+	after 1000 -> []
+	end.
 
-handle_cast(delete, State) ->
-    {stop, normal, State}.
+mark_changes_saved(Pid) ->
+ 	Pid ! mark_changes_saved.
 
-handle_info(timeout, State) ->
-    {noreply, State}.
+load_from_history(Pid, Events) ->
+ 	Pid ! {load_from_history, Events}.
 
-terminate(_Reason, _State) ->
-    ok.
+%% Internals
 
-code_change(_OldVsn, State, _Extra) ->
-    {ok, State}.
+loop(State) ->
+	error_logger:info_msg("Process ~p state:[~p]~n", [self(), State]),
 
-%% Internal
+	receive 
+		{apply_event, Event} ->
+			NewState = apply_event(Event, State),
+			loop(NewState);	
+		{attempt_command, Command} ->
+			NewState = attempt_command(Command, State),
+			loop(NewState);
+		{get_unsaved_changes, From} ->
+			From ! {unsaved_changes, lists:reverse(State#state.changes)},
+			loop(State);
+		mark_changes_saved ->
+			NewState = State#state{changes=[]},
+			loop(NewState);
+ 		{load_from_history, Events} ->
+ 			NewState = apply_many_events(Events, #state{}),
+ 			loop(NewState);
+ 		Unknown -> 
+ 			error_logger:warning_msg("Received unknown message (~p)~n", [Unknown]),
+ 			loop(State)
+		after ?PROCESS_TIME_OUT ->
+			shutting_down
+	end.
 
+attempt_command({create_counter, Id}, State) ->
+	% Maybe check if it already been created.
+	apply_new_event({counter_created, Id, erlang:localtime()}, State);
+attempt_command(bump_counter, State) ->
+	NewCounterValue = State#state.counter_value + 1,
+	apply_new_event({counter_bumped, NewCounterValue, erlang:localtime()}, State);
+attempt_command(Command, State) ->
+	error_logger:warn_msg("attempt_command for unexpected command (~p)~n", [Command]),
+	State.
 
-%% -----------------------------------------------------------------------------
+apply_new_event(Event, State) ->
+	NewState = apply_event(Event, State),
+	CombinedChanges = [Event] ++ NewState#state.changes,
+	NewState#state{changes=CombinedChanges}.
 
-% public abstract class AggregateRoot
-% {
-%     private readonly List<Event> _changes = new List<Event>();
-   
-%     public abstract Guid Id { get; }
-%     public int Version { get; internal set; }
+apply_many_events([], State) ->
+	State;
+apply_many_events([Event|Rest], State) ->
+	NewState = apply_event(Event, State),
+	apply_many_events(Rest, NewState).
 
-%     public IEnumerable<Event> GetUncommittedChanges()
-%     {
-%         return _changes;
-%     }
+apply_event({counter_created, Id, DateCreated}, State) ->
+	State#state{id=Id, date_created=DateCreated};
+apply_event({counter_bumped, CounterValue, DateBumped}, State) ->
+	State#state{counter_value=CounterValue, date_bumped=DateBumped};
+apply_event(_Event, State)->
+	State. % For some events, we don't have state to mutate
 
-%     public void MarkChangesAsCommitted()
-%     {
-%         _changes.Clear();
-%     }
-
-%     public void LoadsFromHistory(IEnumerable<Event> history)
-%     {
-%         foreach (var e in history) ApplyChange(e, false);
-%     }
-
-%     protected void ApplyChange(Event @event)
-%     {
-%         ApplyChange(@event, true);
-%     }
-
-%     private void ApplyChange(Event @event, bool isNew)
-%     {
-%         this.AsDynamic().Apply(@event);
-%         if(isNew) _changes.Add(@event);
-%     }
-% }

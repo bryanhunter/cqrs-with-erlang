@@ -25,11 +25,11 @@ start_link() ->
 init([]) ->
 	Bus = ?CHILD(bus, worker),
 	Repository = ?CHILD(counter_repository, worker),
-	AggregateSup = {counter_aggregate_sup, 
-		{counter_aggregate_sup, start_link, []}, 
-		permanent, 2000, supervisor, [counter_aggregate]},
+	% AggregateSup = {counter_aggregate_sup, 
+	% 	{counter_aggregate_sup, start_link, []}, 
+	% 	permanent, 2000, supervisor, [counter_aggregate]},
 
-	Children = [Bus, Repository, AggregateSup],
+	Children = [Bus, Repository],
 	RestartStrategy = {one_for_one, 10, 60},
     {ok, {RestartStrategy, Children}}.
 

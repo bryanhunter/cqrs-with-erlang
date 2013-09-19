@@ -30,12 +30,21 @@ init(State) ->
 	 {ok, State}.
 
 handle_call({get, Id}, _From, State) ->
-	 Events = event_store:get_events(Id),
-	 Pid = counter_aggregate:load_from_event_stream(Events),
-	 {reply, {ok, Pid}, State};
+	error_logger:info_msg("get(~p)~n", [Id]),
+	case gproc:where({counter_aggregate, Id}) of
+		undefined -> 
+			counter_aggregate:start_link(Id),
+			Events = event_store:get_events(Id),		
+			Pid = counter_aggregate:load_from_event_stream(Id, Events),
+			{reply, {ok, Pid}, State};
+		Pid ->
+			{reply, {ok, Pid}, State}
+	end;
 handle_call({save, Id}, _From, State) ->
+     error_logger:info_msg("save(~p)~n", [Id]),
 	 Events = counter_aggregate:get_uncommited_events(Id),
 	 event_store:append_events(Events),
+	 %TODO: clear uncommited
 	 {reply, ok, State};
 handle_call(get_count, _From, State) ->
     {reply, ok, State}.
