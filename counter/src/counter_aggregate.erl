@@ -4,7 +4,7 @@
 -export([process_unsaved_changes/2, load_from_history/2]).
 
 -record(state, {id, counter_value=0, date_created, date_bumped, changes=[]}).
--define(PROCESS_TIME_OUT, 60000).
+-define(PROCESS_TIME_OUT, 45000).
 
 %% API
 new() ->
@@ -29,8 +29,7 @@ init() ->
 	loop(State).
 
 loop(State) ->
-	error_logger:info_msg("Process ~p state:[~p]~n", [self(), State]),
-
+	%% error_logger:info_msg("Process ~p state:[~p]~n", [self(), State]),
 	receive 
 		{apply_event, Event} ->
 			NewState = apply_event(Event, State),

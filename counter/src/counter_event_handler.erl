@@ -17,12 +17,14 @@ init([]) ->
 	{ok, []}.
 
 handle_event({counter_created, Id, DateCreated}, State) ->
-	error_logger:info_msg("Handle {counter_created {~p, ~p}}~n", 
-		[Id, DateCreated]),
+	%error_logger:info_msg("Handle {counter_created {~p, ~p}}~n",  [Id, DateCreated]),
+	{ok, State};
+handle_event({counter_bumped, Id, CounterValue, DateBumped}, State) 
+		when CounterValue rem 100 == 0 ->
+	error_logger:info_msg("Handle {counter_bumped {~p, ~p, ~p}}~n", [Id, CounterValue, DateBumped]),
 	{ok, State};
 handle_event({counter_bumped, Id, CounterValue, DateBumped}, State) ->
-	error_logger:info_msg("Handle {counter_bumped {~p, ~p, ~p}}~n", 
-		[Id, CounterValue, DateBumped]),
+	%error_logger:info_msg("Handle {counter_bumped {~p, ~p, ~p}}~n", [Id, CounterValue, DateBumped]),
 	{ok, State};
 handle_event(_, State) ->
 	{ok, State}.
