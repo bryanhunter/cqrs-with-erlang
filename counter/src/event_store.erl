@@ -14,15 +14,16 @@ init() ->
 
 append_events(Key, Events) ->
 	StoredEvents = get_raw_events(Key),
-	NewEvents = lists:reverse(Events) ++ StoredEvents,
-    ets:insert(?TABLE_ID, {Key, NewEvents}).
+	NewEvents = lists:reverse(Events),
+    CombinedEvents = NewEvents ++ StoredEvents,
+    ets:insert(?TABLE_ID, {Key, CombinedEvents}),
+    lists:foreach(fun (Event) -> bus:publish_event(Event) end, NewEvents).
 
 get_events(Key) ->
 	lists:reverse(get_raw_events(Key)).
 
 delete(Key) ->
     ets:delete(?TABLE_ID, Key).
-
 
 get_raw_events(Key) ->
     case ets:lookup(?TABLE_ID, Key) of

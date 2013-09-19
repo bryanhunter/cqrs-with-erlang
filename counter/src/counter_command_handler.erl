@@ -3,7 +3,6 @@
 -behavior(gen_event).
 
 -export([add_handler/0, delete_handler/0]).
-
 -export([init/1, handle_event/2, handle_call/2, 
 	handle_info/2, code_change/3, terminate/2]).
 
@@ -17,14 +16,20 @@ init([]) ->
 	{ok, []}.
 
 handle_event({create_counter, Id}, State) ->
-	error_logger:info_msg("Handle {create_counter {~p}}~n", [Id]),
-	{ok, Pid} = counter_aggregate:create_counter(Id),
+	not_found = counter_repository:get_by_id(Id),
+	Pid = counter_aggregate:new(),
+	counter_aggregate:create_counter(Pid, Id),
 	counter_repository:save(Pid),
 	{ok, State};
 handle_event({bump_counter, Id}, State) ->
-	error_logger:info_msg("Handle {bump_counter {~p}}~n", [Id]),
-	%% {ok, Pid} = counter_repository:get_counter_aggregate(Id),
-	{ok, State};
+	case counter_repository:get_by_id(Id) of
+		not_found ->
+			{ok, State};
+		{ok,Pid} ->
+			counter_aggregate:bump_counter(Pid),
+			counter_repository:save(Pid),
+			{ok, State}
+	end;
 handle_event(_, State) ->
 	{ok, State}.
 
@@ -39,4 +44,3 @@ terminate(_Reason, _State) ->
 
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
-

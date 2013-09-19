@@ -1,62 +1,23 @@
 -module(counter_repository).
 
-% public interface IRepository<T> where T : AggregateRoot, new()
-% {
-%     void Save(AggregateRoot aggregate, int expectedVersion);
-%     T GetById(Guid id);
-% }
+-export([get_by_id/1,save/1]).
 
--behaviour(gen_server).
-
--export([start_link/0,get_by_id/1,save/1]).
-
--export([init/1, handle_call/3, handle_cast/2, handle_info/2,
-         terminate/2, code_change/3]).
-
--define(SERVER, ?MODULE).
-
-%% API
-start_link() ->
-    gen_server:start_link({local, ?SERVER}, ?MODULE, [], []).
-
-get_by_id(Id) -> 
-	gen_server:call(?SERVER, {get, Id}).
+get_by_id(Id) ->
+	case gproc:where({n,l, {counter_aggregate, Id}}) of
+		undefined -> load_from_event_store(Id);
+		Pid -> {ok, Pid}
+	end.
 
 save(Pid) ->
-	gen_server:call(?SERVER, {save, Pid}).	
+	Saver = fun(Id, Events) -> event_store:append_events(Id, Events) end,
+	counter_aggregate:process_unsaved_changes(Pid, Saver).
 
-%% Calbacks
-init(State) ->
-	 {ok, State}.
-
-handle_call({get, Id}, _From, State) ->
-	error_logger:info_msg("get(~p)~n", [Id]),
-	case gproc:where({counter_aggregate, Id}) of
-		undefined -> 
-			counter_aggregate:start_link(Id),
-			Events = event_store:get_events(Id),		
-			Pid = counter_aggregate:load_from_event_stream(Id, Events),
-			{reply, {ok, Pid}, State};
-		Pid ->
-			{reply, {ok, Pid}, State}
-	end;
-handle_call({save, Id}, _From, State) ->
-     error_logger:info_msg("save(~p)~n", [Id]),
-	 Events = counter_aggregate:get_uncommited_events(Id),
-	 event_store:append_events(Events),
-	 %TODO: clear uncommited
-	 {reply, ok, State};
-handle_call(get_count, _From, State) ->
-    {reply, ok, State}.
-
-handle_cast(delete, State) ->
-    {stop, normal, State}.
-
-handle_info(timeout, State) ->
-    {noreply, State}.
-
-terminate(_Reason, _State) ->
-    ok.
-
-code_change(_OldVsn, State, _Extra) ->
-    {ok, State}.
+load_from_event_store(Id) ->
+	case event_store:get_events(Id) of 
+		[] -> 
+			not_found;
+		Events -> 
+			Pid = counter_aggregate:new(),
+			counter_aggregate:load_from_history(Pid, Events),
+			{ok, Pid}
+	end.
