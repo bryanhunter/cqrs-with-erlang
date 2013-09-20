@@ -27,8 +27,8 @@ init([]) ->
 	% AggregateSup = {counter_aggregate_sup, 
 	% 	{counter_aggregate_sup, start_link, []}, 
 	% 	permanent, 2000, supervisor, [counter_aggregate]},
-
-	Children = [Bus],
+	Projection = ?CHILD(counter_summary_projection, worker),
+	Children = [Bus,Projection],
 	RestartStrategy = {one_for_one, 10, 60},
     {ok, {RestartStrategy, Children}}.
 

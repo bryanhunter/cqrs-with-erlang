@@ -16,11 +16,15 @@ init([]) ->
 	{ok, []}.
 
 handle_event({create_counter, Id}, State) ->
-	not_found = counter_repository:get_by_id(Id),
-	Pid = counter_aggregate:new(),
-	counter_aggregate:create_counter(Pid, Id),
-	counter_repository:save(Pid),
-	{ok, State};
+	case counter_repository:get_by_id(Id) of
+		not_found ->
+			Pid = counter_aggregate:new(),
+			counter_aggregate:create_counter(Pid, Id),
+			counter_repository:save(Pid),
+			{ok, State};
+		_ -> 	
+			{ok, State}
+	end;
 handle_event({bump_counter, Id}, State) ->
 	case counter_repository:get_by_id(Id) of
 		not_found ->

@@ -16,15 +16,16 @@ bump_counter(Id) ->
 
 blast(Counters, BumpTo) ->
 	[spawn( ?MODULE, create_and_blast, [Id, BumpTo] ) ||
-		Id <- lists:seq(1, Counters)].
+		Id <- lists:seq(1, Counters)],
+	ok.
 
-create_and_blast(CounterId, StartHowMany) ->
+create_and_blast(CounterId, HowMany) ->
 	create_counter(CounterId),
 	[bump_counter(CounterId) || 
 		_X <- lists:seq(1,HowMany)].
 
-query_for_counter(_Id) -> 
-	ok.
+query_for_counter(Id) -> 
+	read_store:get_counter_detail(Id).
 
 query_for_counter_summary() -> 
-	ok.
+	read_store:get_counter_summary().

@@ -14,7 +14,7 @@ start(_StartType, _StartArgs) ->
 	ensure_started(gproc),
 
 	event_store:init(),
-
+    read_store:init(),
     case counter_sup:start_link() of
         {ok, Pid} ->
             counter_command_handler:add_handler(),

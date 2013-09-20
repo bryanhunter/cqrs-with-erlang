@@ -5,7 +5,6 @@
 %% automatic garbage collection for ets tables.
 
 -export([init/0,get_events/1,append_events/2, delete/1]).
-
 -define(TABLE_ID, ?MODULE).
 
 init() ->
