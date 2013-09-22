@@ -24,6 +24,7 @@ counter_client:blast(1000,100).
 
 Understanding gen_event wireup
 ------------------------------
+```
 _app:start()
 	_sup:start_link()
 		supervisor:start_link({local, _sup}, _sup, []).
@@ -40,8 +41,9 @@ _app:start()
 			_event_manager:event_handler(_event_handler, [])
 			 	gen_event:add_handler(_event_manager, _event_handler, Handler, Args).
 			 		_event_handler:init()
+			 		
 
-
+```
 _app
 - is an application
 
