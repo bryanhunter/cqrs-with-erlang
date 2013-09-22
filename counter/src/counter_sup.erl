@@ -2,31 +2,19 @@
 
 -behaviour(supervisor).
 
-%% API
 -export([start_link/0]).
-
-%% supervisor callbacks
 -export([init/1]).
 
 %% Helper macro for declaring children of supervisor
 -define(CHILD(I, Type), {I, {I, start_link, []}, permanent, 5000, Type, [I]}).
 
-%% ===================================================================
 %% API functions
-%% ===================================================================
-
 start_link() ->
     supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 
-%% ===================================================================
 %% Supervisor callbacks
-%% ===================================================================
-
 init([]) ->
 	Bus = ?CHILD(bus, worker),
-	% AggregateSup = {counter_aggregate_sup, 
-	% 	{counter_aggregate_sup, start_link, []}, 
-	% 	permanent, 2000, supervisor, [counter_aggregate]},
 	Projection = ?CHILD(counter_summary_projection, worker),
 	Children = [Bus,Projection],
 	RestartStrategy = {one_for_one, 10, 60},

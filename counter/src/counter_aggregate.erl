@@ -68,12 +68,6 @@ apply_new_event(Event, State) ->
 	CombinedChanges = [Event] ++ NewState#state.changes,
 	NewState#state{changes=CombinedChanges}.
 
-apply_many_events([], State) ->
-	State;
-apply_many_events([Event|Rest], State) ->
-	NewState = apply_event(Event, State),
-	apply_many_events(Rest, NewState).
-
 apply_event({counter_created, Id, DateCreated}, State) ->
 	gproc:reg({n, l, {counter_aggregate, Id}}),
 	State#state{id=Id, date_created=DateCreated};
@@ -82,3 +76,8 @@ apply_event({counter_bumped, _Id, CounterValue, DateBumped}, State) ->
 apply_event(_Event, State)->
 	State. % For some events, we don't have state to mutate
 
+apply_many_events([], State) ->
+	State;
+apply_many_events([Event|Rest], State) ->
+	NewState = apply_event(Event, State),
+	apply_many_events(Rest, NewState).

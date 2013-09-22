@@ -14,6 +14,13 @@ bump_counter(Id) ->
 	%% error_logger:info_msg("counter_client:bump_counter(~p)~n", [Id]),
 	bus:send_command({bump_counter, Id}).
 
+query_for_counter(Id) -> 
+	read_store:get_counter_detail(Id).
+
+query_for_counter_summary() -> 
+	read_store:get_counter_summary().
+
+
 blast(Counters, BumpTo) ->
 	[spawn( ?MODULE, create_and_blast, [Id, BumpTo] ) ||
 		Id <- lists:seq(1, Counters)],
@@ -21,11 +28,9 @@ blast(Counters, BumpTo) ->
 
 create_and_blast(CounterId, HowMany) ->
 	create_counter(CounterId),
-	[bump_counter(CounterId) || 
-		_X <- lists:seq(1,HowMany)].
+	receive 
+		after 10 ->
+			[bump_counter(CounterId) || _X <- lists:seq(1,HowMany)]
+	end.
+	
 
-query_for_counter(Id) -> 
-	read_store:get_counter_detail(Id).
-
-query_for_counter_summary() -> 
-	read_store:get_counter_summary().

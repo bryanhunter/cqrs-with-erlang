@@ -5,14 +5,9 @@
 %% Application callbacks
 -export([start/2, stop/1]).
 
-%% ===================================================================
 %% Application callbacks
-%% ===================================================================
-
 start(_StartType, _StartArgs) ->
-	ensure_started(sasl),
 	ensure_started(gproc),
-
 	event_store:init(),
     read_store:init(),
     case counter_sup:start_link() of

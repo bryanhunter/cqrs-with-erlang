@@ -56,7 +56,7 @@ project_new_counter_to_counter_summary(CounterId) ->
 	NewSummary = Summary#counter_summary
 		{
 			count_of_counters=NewCount,
-			summary_message = SummaryMessage
+			summary_message=SummaryMessage
 		},
 	read_store:set_counter_summary(NewSummary),
 	ok.
@@ -64,13 +64,11 @@ project_new_counter_to_counter_summary(CounterId) ->
 project_counter_bump_to_counter_summary(CounterValue) ->
 	Summary = read_store:get_counter_summary(),
 	NewSum = Summary#counter_summary.sum_of_counter_values + 1,
-	Lowest = min(CounterValue, Summary#counter_summary.lowest_value),
 	Highest = max(CounterValue, Summary#counter_summary.highest_value),
 
 	NewSummary = Summary#counter_summary
 		{
 			sum_of_counter_values=NewSum,
-			lowest_value=Lowest,
 			highest_value=Highest
 		},
 	read_store:set_counter_summary(NewSummary),

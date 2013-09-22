@@ -1,6 +1,25 @@
 Counter sample
 ==============
 
+````
+cd ./counter
+run
+
+application:start(counter).
+counter_client:create_counter(wolfman).
+counter_client:bump_counter(wolfman).
+counter_client:bump_counter(wolfman).
+counter_client:bump_counter(wolfman).
+observer:start().
+counter_client:create_counter(dracula).
+counter_client:bump_counter(dracula).
+counter_client:bump_counter(dracula).
+counter_client:bump_counter(dracula).
+counter_client:bump_counter(dracula).
+counter_client:query_for_counter_summary().
+counter_client:blast(1000,100).
+
+````
 
 
 Understanding gen_event wireup
