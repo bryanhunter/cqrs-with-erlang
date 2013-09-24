@@ -2,15 +2,11 @@
 
 %% The EventManager for our app
 
-%% API
 -export([start_link/0, add_handler/2, delete_handler/2, send_command/1,
 	publish_event/1]).
-
 -define(SERVER, ?MODULE).
 
-%% ===================================================================
 %% API functions
-%% ===================================================================
 start_link() ->
     gen_event:start_link({local, ?SERVER}).
 

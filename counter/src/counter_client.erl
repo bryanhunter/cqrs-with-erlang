@@ -20,7 +20,6 @@ query_for_counter(Id) ->
 query_for_counter_summary() -> 
 	read_store:get_counter_summary().
 
-
 blast(Counters, BumpTo) ->
 	[spawn( ?MODULE, create_and_blast, [Id, BumpTo] ) ||
 		Id <- lists:seq(1, Counters)],

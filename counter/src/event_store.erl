@@ -1,7 +1,7 @@
 -module(event_store).
 
-%% Using ets for an event store is fine for this demo, but the data 
-%% will be discarded when the creating process dies, and their is no
+%% Using ets for an event store is fine for a demo, but the data 
+%% will be discarded when the creating process dies, and there is no
 %% automatic garbage collection for ets tables.
 
 -export([init/0,get_events/1,append_events/2, delete/1]).

@@ -4,7 +4,7 @@
 -export([init/0, get_counter_summary/0, set_counter_summary/1]).
 
 %% Using ets for the read store is fine for this demo, but the data 
-%% will be discarded when the creating process dies, and their is no
+%% will be discarded when the creating process dies, and there is no
 %% automatic garbage collection for ets tables.
 
 init() ->

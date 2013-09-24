@@ -1,5 +1,7 @@
 -module(counter_aggregate).
 
+%% Counter our very simple aggregate. 
+
 -export([new/0,create_counter/2, bump_counter/1]).
 -export([process_unsaved_changes/2, load_from_history/2]).
 
@@ -7,6 +9,7 @@
 -define(PROCESS_TIME_OUT, 45000).
 
 %% API
+
 new() ->
 	spawn(fun() -> init() end).
 
@@ -53,7 +56,7 @@ loop(State) ->
 	end.
 
 attempt_command({create_counter, Id}, State) ->
-	% Maybe check if it already been created.
+	%% TODO: check if it's already been created 
 	apply_new_event({counter_created, Id, erlang:localtime()}, State);
 attempt_command(bump_counter, State) ->
 	NewCounterValue = State#state.counter_value + 1,
@@ -69,6 +72,7 @@ apply_new_event(Event, State) ->
 	NewState#state{changes=CombinedChanges}.
 
 apply_event({counter_created, Id, DateCreated}, State) ->
+	%% TODO: refactor the gproc:reg call out to the repository
 	gproc:reg({n, l, {counter_aggregate, Id}}),
 	State#state{id=Id, date_created=DateCreated};
 apply_event({counter_bumped, _Id, CounterValue, DateBumped}, State) ->
@@ -81,3 +85,4 @@ apply_many_events([], State) ->
 apply_many_events([Event|Rest], State) ->
 	NewState = apply_event(Event, State),
 	apply_many_events(Rest, NewState).
+	
