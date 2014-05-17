@@ -1,1 +1,0 @@
-erl -pa ebin -pa deps/gproc/ebin
