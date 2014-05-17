@@ -1,7 +1,7 @@
 CQRS with Erlang
 ================
 
-Presented at The Stange Loop 2013 in St. Louis, Missouri on October 20 from 9:50-10:30.
+Presented at NDC London 2013 on Wednesday, Dec 4, 2013.
 
 Abstract
 ========
