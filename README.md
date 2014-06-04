@@ -1,7 +1,7 @@
 CQRS with Erlang
 ================
 
-Presented at NDC London 2013 on Wednesday, Dec 4, 2013.
+Presented at NDC Oslo 2014 on Wednesday, June 4, 2014.
 
 Abstract
 ========
