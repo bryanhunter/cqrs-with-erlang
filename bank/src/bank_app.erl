@@ -12,7 +12,8 @@ start(_StartType, _StartArgs) ->
 	ensure_started(gproc),
 	bank_event_store:init(),
     bank_read_store:init(),
-    
+	keypid:init(),
+	
     case bank_sup:start_link() of
         {ok, Pid} ->
             bank_command_handler:add_handler(),
@@ -21,7 +22,7 @@ start(_StartType, _StartArgs) ->
         Other ->
             {error, Other}
     end.
-    
+
 stop(_State) ->
     ok.
 

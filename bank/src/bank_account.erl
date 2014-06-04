@@ -13,7 +13,7 @@
 new() ->
 	spawn(fun() -> init() end).
 
-create(Pid, Id) -> 
+create(Pid, Id) ->
 	Pid ! {attempt_command, {create, Id}}.
 
 deposit_money(Pid, Amount) ->
@@ -30,16 +30,16 @@ load_from_history(Pid, Events) ->
 
 %% Internals
 
-init() -> 
+init() ->
 	State = #state{},
 	loop(State).
 
-loop(State) ->
+loop(#state{id=Id}=State) ->
 	%% error_logger:info_msg("Process ~p state:[~p]~n", [self(), State]),
-	receive 
+	receive
 		{apply_event, Event} ->
 			NewState = apply_event(Event, State),
-			loop(NewState);	
+			loop(NewState);
 		{attempt_command, Command} ->
 			NewState = attempt_command(Command, State),
 			loop(NewState);
@@ -51,22 +51,23 @@ loop(State) ->
 		{load_from_history, Events} ->
  			NewState = apply_many_events(Events, #state{}),
  			loop(NewState);
- 		Unknown -> 
+ 		Unknown ->
  			error_logger:warning_msg("Received unknown message (~p)~n", [Unknown]),
  			loop(State)
 		after ?PROCESS_TIME_OUT ->
-			shutting_down
+			bank_account_repository:remove_from_cache(Id),
+			exit(normal)
 	end.
 
 attempt_command({create, Id}, State) ->
-	%% TODO: check if it's already been created 
+	%% TODO: check if it's already been created
 	Event = #bank_account_created{id=Id, date_created=erlang:localtime()},
 	apply_new_event( Event, State);
 
 attempt_command({deposit_money, Amount}, State) ->
 	NewBalance = State#state.balance + Amount,
 	Id = State#state.id,
-	Event = #bank_account_money_deposited{id=Id, amount=Amount, 
+	Event = #bank_account_money_deposited{id=Id, amount=Amount,
 				new_balance=NewBalance,transaction_date=erlang:localtime()},
 	apply_new_event(Event, State);
 
@@ -75,10 +76,10 @@ attempt_command({withdraw_money, Amount}, State) ->
 	Id = State#state.id,
 
 	Event = case(NewBalance < 0) of
-		false -> 
+		false ->
 			#bank_account_money_withdrawn{id=Id, amount=Amount,
 						new_balance=NewBalance,transaction_date=erlang:localtime()};
-		true -> 
+		true ->
 			#bank_account_payment_declined{id=Id,amount=Amount,
 						transaction_date=erlang:localtime()}
 		end,
@@ -94,13 +95,7 @@ apply_new_event(Event, State) ->
 	NewState#state{changes=CombinedChanges}.
 
 apply_event(#bank_account_created{id=Id,date_created=DateCreated}, State) ->
-	case gproc:where({n,l, {bank_account, Id}}) of
-		%% TODO: refactor the gproc:reg call out to the repository
-		undefined -> 
-			gproc:reg({n, l, {bank_account, Id}}),
-			gproc:await({n,l, {bank_account, Id}});
-		_ -> ok
-	end,
+	bank_account_repository:add_to_cache(Id),
 	State#state{id=Id, date_created=DateCreated};
 apply_event(#bank_account_money_deposited{amount=Amount}, #state{balance=Balance}=State) ->
 	State#state{balance = Balance + Amount};

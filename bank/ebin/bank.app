@@ -5,8 +5,9 @@
               {applications,[kernel,stdlib]},
               {mod,{bank_app,[]}},
               {env,[]},
-              {modules,[atm,bank,bank_account,bank_account_detail_projection,
+              {modules,[bank,bank_account,bank_account_detail_projection,
                         bank_account_repository,
                         bank_account_summary_projection,bank_app,bank_bus,
                         bank_command_handler,bank_event_handler,
-                        bank_event_store,bank_read_store,bank_sup]}]}.
+                        bank_event_store,bank_read_store,bank_sup,keypid,
+                        loadsim]}]}.
