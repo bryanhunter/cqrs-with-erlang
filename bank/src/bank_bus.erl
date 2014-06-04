@@ -9,6 +9,9 @@
 
 %% API functions
 start_link() ->
+	% Creates an event manager process as part of a supervision tree.
+	% The function should be called, directly or indirectly, by the supervisor.
+	% It will, among other things, ensure that the event manager is linked to the supervisor.
     gen_event:start_link({local, ?SERVER}).
 
 add_handler(Handler, Args) ->
