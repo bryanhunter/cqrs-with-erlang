@@ -1,0 +1,9 @@
+*.beam
+*.swp
+.DS_Store
+rel/oculus
+rel/files/sys.config
+rel/files/vm.args
+deps/
+ebin/
+.eunit/*
